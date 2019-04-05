@@ -1,5 +1,14 @@
 import time, heapq, threading, queue
 from collections import deque
+from datetime import datetime
+
+
+class Station_Customer_view:
+
+    def __init__(self, stationType, itemCount, maxQueueSize):
+        self.stationType = stationType
+        self.itemCount = itemCount
+        self.maxQueueSize = maxQueueSize
 
 
 class Customer:
@@ -7,8 +16,7 @@ class Customer:
     def __init__(self, type_id):
 
         if type_id == 1:    # Type A
-            self.baecker_items = 10
-            self.baecker_max_queue_to_service = 10
+            self.baecker = Station_Customer_view("Bäcker", 10, 10)
             self.wurst_items = 5
             self.wurst_max_queue_to_service = 10
             self.kaese_items = 3
@@ -19,8 +27,7 @@ class Customer:
             self.id = 0
 
         elif type_id == 2:    # Type B
-            self.baecker_items = 3
-            self.baecker_max_queue_to_service = 20
+            self.baecker = Station_Customer_view("Bäcker", 3, 20)
             self.wurst_items = 2
             self.wurst_max_queue_to_service = 5
             self.kasse_items = 3
@@ -30,45 +37,91 @@ class Customer:
 
 
 class Shop:
-
-    def baecker(self, b_queue):
-        while(True):
-            if not b_queue.empty():
-                customer = b_queue.get()
+    def serving_customer(queue, serveTime, lastServed):
+        now = datetime.now()
+        diff = now - lastServed
+        print("serving()")
+        if (diff.seconds >= serveTime):
+            print("serving() yes, diff passed")
+            print("serving() queue: ", queue.qsize())
+            if not queue.empty():
+                print("serving() queue not empty")
+                customer = queue.get()
                 with open("supermarkt_station.txt", "a") as myfile:
                     myfile.write("Bäcker serving customer " + str(customer.type_id)+str(customer.id) + "\n")
-                time.sleep(customer.baecker_items * 1)
+                time.sleep(customer.baecker.itemCount * serveTime)
                 with open("supermarkt_station.txt", "a") as myfile:
                     myfile.write("Bäcker finished customer " + str(customer.type_id) + str(customer.id) + "\n")
+            return True
+        else:
+            print("serving() no, diff not passed")
+            return False
+
+    def customer_joining_queue(self, customer):
+        super.addCustomer(queue, customer)
+
+    def poll_server(self, station):
+        while not station.serving():
+            time.sleep(0.01)
 
 
-class Simulation:
+class Baecker:
+    serveTime = 1
 
-    t1c1 = Customer(1)
-    t1c1.id = 1
+    def __init__(self):
+        print("State init")
+        self.queue = queue.Queue()
+        self.lastServed = datetime(2000, 1, 1)
 
-    t1c2 = Customer(1)
-    t1c2.id = 2
+    def serving(self):
+        if Shop.serving_customer(self.queue, self.serveTime, self.lastServed):
+            self.lastServed = datetime.now()
+            return True
+        else:
+            return False
 
-    t2c1 = Customer(2)
-    t2c1.id = 2
+    def getQueueSize(self, queue):
+        return queue.len()
 
-    b_queue = queue.Queue()
-
-    b_queue.put(t1c1)
-    with open("supermarkt_station.txt", "a") as myfile:
-        myfile.write("Bäcker adding customer " + str(t1c1.type_id) + str(t1c1.id) + "\n")
-
-    shop = Shop()
-
-    # shop.baecker(b_queue)
-    t = threading.Thread(target=shop.baecker, args=[b_queue])
-    t.daemon = True
-    t.start()
-    time.sleep(5)
-    b_queue.put(t1c2)
-    with open("supermarkt_station.txt", "a") as myfile:
-        myfile.write("Bäcker adding customer " + str(t1c2.type_id) + str(t1c2.id) + "\n")
+    def addCustomer(self, customer):
+        print("State added")
+        with open("supermarkt_station.txt", "a") as myfile:
+            myfile.write("Bäcker adding customer " + str(customer.type_id) + str(customer.id) + "\n")
+        self.queue.put(customer)
 
 
-    time.sleep(100)
+t1c1 = Customer(1)
+t1c1.id = 1
+
+t1c2 = Customer(1)
+t1c2.id = 2
+
+t2c1 = Customer(2)
+t2c1.id = 2
+
+
+baecker = Baecker()
+
+
+
+# baecker.serving()
+baecker.addCustomer(t1c1)
+print("serving() returns: " + str(baecker.serving()))
+
+time.sleep(5)
+baecker.serving()
+
+baecker.addCustomer(t1c2)
+baecker.serving()
+
+
+
+# t = threading.Thread(target=Baecker.start_serving)
+# t.daemon = True
+# t.start()
+# Shop.serving_customer(self.serveTime, self.queue)
+
+# Shop.poll_server(baecker) #nur bei threads
+
+
+# time.sleep(100)
