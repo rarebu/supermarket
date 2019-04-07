@@ -40,16 +40,16 @@ class Shop:
     def serving_customer(queue, serveTime, lastServed):
         now = datetime.now()
         diff = now - lastServed
-        print("serving()")
+        print("serving() diff.seconds " + str(diff.seconds) + " serveTime " + str(serveTime))
         if (diff.seconds >= serveTime):
             print("serving() yes, diff passed")
             print("serving() queue: ", queue.qsize())
             if not queue.empty():
-                print("serving() queue not empty")
                 customer = queue.get()
+                print("serving() customer " + str(customer.type_id)+str(customer.id))
                 with open("supermarkt_station.txt", "a") as myfile:
                     myfile.write("Bäcker serving customer " + str(customer.type_id)+str(customer.id) + "\n")
-                time.sleep(customer.baecker.itemCount * serveTime)
+                # time.sleep(customer.baecker.itemCount * serveTime)
                 with open("supermarkt_station.txt", "a") as myfile:
                     myfile.write("Bäcker finished customer " + str(customer.type_id) + str(customer.id) + "\n")
             return True
@@ -99,17 +99,17 @@ t1c2.id = 2
 t2c1 = Customer(2)
 t2c1.id = 2
 
-
 baecker = Baecker()
-
-
 
 # baecker.serving()
 baecker.addCustomer(t1c1)
-print("serving() returns: " + str(baecker.serving()))
+while True:
+    print("serving() returns: " + str(baecker.serving()))
+    time.sleep(1)
+# with open("supermarkt_station.txt", "a") as myfile:
+#     myfile.write("Bäcker finished customer " + str(customer.type_id) + str(customer.id) + "\n")
 
 time.sleep(5)
-baecker.serving()
 
 baecker.addCustomer(t1c2)
 baecker.serving()
