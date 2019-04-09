@@ -1,0 +1,6 @@
+2019-04-09 12:01:12,521 - Test Start
+2019-04-09 12:06:34,387 - Test Start
+2019-04-09 12:06:34,387 - Bäcker adding customer A1
+2019-04-09 12:06:34,387 - Bäcker adding customer A2
+2019-04-09 12:06:34,387 - Shop serving customer A1
+2019-04-09 12:06:42,396 - Shop serving customer A2
