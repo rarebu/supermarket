@@ -64,7 +64,6 @@ class Shop:
     def serving_items(shop_object):
         serving_until = shop_object.serving_until
 
-        print(shop_object.name + " serving until: " + str(serving_until))
         if serving_until > datetime.now():
             return True
         else:
@@ -79,7 +78,6 @@ class Shop:
 
 
 class Baecker:
-
     def __init__(self):
         self.queue = queue.Queue()
         self.last_served = datetime(2000, 1, 1)
@@ -91,10 +89,10 @@ class Baecker:
         tmp = Shop.serving_customer(shop_object)
         if tmp[0] != 0:
             self.last_served = datetime.now()
-        return tmp
+        return
 
-    def get_queue_size(self, queue):
-        return queue.len()
+    def get_queue_size(self):
+        return self.queue.qsize()
 
     def add_customer(self, customer):
         logger.info("Bäcker adding customer " + str(customer.type_id) + str(customer.id))
@@ -102,7 +100,6 @@ class Baecker:
 
 
 class Wursttheke:
-
     def __init__(self):
         self.queue = queue.Queue()
         self.last_served = datetime(2000, 1, 1)
@@ -114,10 +111,10 @@ class Wursttheke:
         tmp = Shop.serving_customer(shop_object)
         if tmp[0] != 0:
             self.last_served = datetime.now()
-        return tmp
+        return
 
-    def get_queue_size(self, queue):
-        return queue.len()
+    def get_queue_size(self):
+        return self.queue.qsize()
 
     def add_customer(self, customer):
         logger.info("Wursttheke adding customer " + str(customer.type_id) + str(customer.id))
@@ -125,7 +122,6 @@ class Wursttheke:
 
 
 class Kaesetheke:
-
     def __init__(self):
         self.queue = queue.Queue()
         self.last_served = datetime(2000, 1, 1)
@@ -137,10 +133,10 @@ class Kaesetheke:
         tmp = Shop.serving_customer(shop_object)
         if tmp[0] != 0:
             self.last_served = datetime.now()
-        return tmp
+        return
 
-    def get_queue_size(self, queue):
-        return queue.len()
+    def get_queue_size(self):
+        return self.queue.qsize()
 
     def add_customer(self, customer):
         logger.info("Käsetheke adding customer " + str(customer.type_id) + str(customer.id))
@@ -148,7 +144,6 @@ class Kaesetheke:
 
 
 class Kasse:
-
     def __init__(self):
         self.queue = queue.Queue()
         self.last_served = datetime(2000, 1, 1)
@@ -160,10 +155,10 @@ class Kasse:
         tmp = Shop.serving_customer(shop_object)
         if tmp[0] != 0:
             self.last_served = datetime.now()
-        return tmp
+        return
 
-    def get_queue_size(self, queue):
-        return queue.len()
+    def get_queue_size(self):
+        return self.queue.qsize()
 
     def add_customer(self, customer):
         logger.info("Kasse adding customer " + str(customer.type_id) + str(customer.id))
@@ -181,6 +176,16 @@ formatter = logging.Formatter('%(asctime)s - %(message)s')
 handler.setFormatter(formatter)
 logger.addHandler(handler)
 logger.info('Test Start')
+
+
+
+
+
+
+baecker = Baecker()
+kaesetheke = Kaesetheke()
+wursttheke = Wursttheke()
+kasse = Kasse()
 
 t1c1 = Customer(1)
 t1c2 = Customer(1)
@@ -224,34 +229,30 @@ t2c8.id = 8
 t2c9.id = 9
 t2c10.id = 10
 
-baecker = Baecker()
-kaesetheke = Kaesetheke()
-wursttheke = Wursttheke()
-kasse = Kasse()
-
-baecker.add_customer(t1c1)
-baecker.add_customer(t1c2)
-baecker.add_customer(t1c3)
-baecker.add_customer(t1c4)
-baecker.add_customer(t1c5)
-
-baecker.add_customer(t2c1)
-baecker.add_customer(t2c2)
-baecker.add_customer(t2c3)
-baecker.add_customer(t2c4)
-
-kaesetheke.add_customer(t1c6)
-kaesetheke.add_customer(t1c7)
-kaesetheke.add_customer(t1c8)
-kaesetheke.add_customer(t1c9)
-kaesetheke.add_customer(t1c10)
-
-wursttheke.add_customer(t2c5)
-wursttheke.add_customer(t2c6)
-wursttheke.add_customer(t2c7)
-wursttheke.add_customer(t2c8)
-wursttheke.add_customer(t2c9)
-wursttheke.add_customer(t2c10)
+if baecker.get_queue_size() < t1c1.baecker.max_queue_size:
+    baecker.add_customer(t1c1)
+# baecker.add_customer(t1c2)
+# baecker.add_customer(t1c3)
+# baecker.add_customer(t1c4)
+# baecker.add_customer(t1c5)
+#
+# baecker.add_customer(t2c1)
+# baecker.add_customer(t2c2)
+# baecker.add_customer(t2c3)
+# baecker.add_customer(t2c4)
+#
+# kaesetheke.add_customer(t1c6)
+# kaesetheke.add_customer(t1c7)
+# kaesetheke.add_customer(t1c8)
+# kaesetheke.add_customer(t1c9)
+# kaesetheke.add_customer(t1c10)
+#
+# wursttheke.add_customer(t2c5)
+# wursttheke.add_customer(t2c6)
+# wursttheke.add_customer(t2c7)
+# wursttheke.add_customer(t2c8)
+# wursttheke.add_customer(t2c9)
+# wursttheke.add_customer(t2c10)
 
 while True:
     if len(heap) > 0:
@@ -259,9 +260,10 @@ while True:
         if x[0] < datetime.now():
             y = heapq.heappop(heap)
             logger.info(y[2] + ' finished serving ' + y[1])
-    print(kaesetheke.serving(kaesetheke))
-    print(baecker.serving(baecker))
-    print(wursttheke.serving(wursttheke))
+    kaesetheke.serving(kaesetheke)
+    baecker.serving(baecker)
+    kasse.serving(kasse)
+    wursttheke.serving(wursttheke)
     print(list(heap))
     time.sleep(1)
 
