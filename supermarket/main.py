@@ -19,7 +19,7 @@ class Customer:
         if type_id == 1:    # Type A
             self.baecker = Station_customer_view("Bäcker", 10, 10)
             self.wursttheke = Station_customer_view("Wursttheke", 5, 10)
-            self.kasestheke = Station_customer_view("Käsetheke", 3, 5)
+            self.kaesetheke = Station_customer_view("Käsetheke", 3, 5)
             self.kasse = Station_customer_view("Kasse", 30, 20)
             self.type_id = 'A'
             self.id = 0
@@ -33,33 +33,39 @@ class Customer:
 
 
 class Shop:
-    serving_until = datetime(2000, 1, 1)
-
-    def serving_customer(queue, serve_time, last_served, shop_name):
-        if Shop.serving_items(shop_name):
+    def serving_customer(shop_object):
+        if Shop.serving_items(shop_object):
             return 0, ""
 
         now = datetime.now()
-        diff = now - last_served
+        diff = now - shop_object.last_served
 
-        if diff.seconds >= serve_time:
-            if not queue.empty():
-                customer = queue.get()
+        if diff.seconds >= shop_object.serve_time:
+            if not shop_object.queue.empty():
+                customer = shop_object.queue.get()
                 tmpstr = str(customer.type_id) + str(customer.id)
-                heapq.heappush(heap, (datetime.now() + timedelta(0, customer.baecker.item_count * serve_time), tmpstr, shop_name))
-                Shop.serving_until = datetime.now() + timedelta(0, customer.baecker.item_count * serve_time)
-                logger.info(shop_name + " serving customer " + tmpstr)
-                return customer.baecker.item_count * serve_time, tmpstr
+                if shop_object.name == "Bäcker":
+                    tmptime = customer.baecker.item_count * shop_object.serve_time
+                if shop_object.name == "Kasse":
+                    tmptime = customer.kasse.item_count * shop_object.serve_time
+                if shop_object.name == "Käsetheke":
+                    tmptime = customer.kaesetheke.item_count * shop_object.serve_time
+                if shop_object.name == "Wursttheke":
+                    tmptime = customer.wursttheke.item_count * shop_object.serve_time
+                heapq.heappush(heap, (datetime.now() + timedelta(0, tmptime), tmpstr, shop_object.name))
+                shop_object.serving_until = datetime.now() + timedelta(0, tmptime)
+                logger.info(shop_object.name + " serving customer " + tmpstr)
+                return tmptime, tmpstr
             return 0, ""
         else:
             return 0, ""
 
     @staticmethod
-    def serving_items(shop_name):
-        tmp = eval("super." + shop_name + ".serving_until") # todo ifelse
-        baecker.serving_until
-        print(str(tmp))
-        if tmp > datetime.now():
+    def serving_items(shop_object):
+        serving_until = shop_object.serving_until
+
+        print(shop_object.name + " serving until: " + str(serving_until))
+        if serving_until > datetime.now():
             return True
         else:
             return False
@@ -73,15 +79,16 @@ class Shop:
 
 
 class Baecker:
-    serve_time = 10          # todo in init
 
     def __init__(self):
         self.queue = queue.Queue()
         self.last_served = datetime(2000, 1, 1)
         self.serving_until = datetime(2000, 1, 1)
+        self.name = "Bäcker"
+        self.serve_time = 10
 
-    def serving(self):
-        tmp = Shop.serving_customer(self.queue, self.serve_time, self.last_served, "baecker")
+    def serving(self, shop_object):
+        tmp = Shop.serving_customer(shop_object)
         if tmp[0] != 0:
             self.last_served = datetime.now()
         return tmp
@@ -95,15 +102,16 @@ class Baecker:
 
 
 class Wursttheke:
-    serve_time = 30
 
     def __init__(self):
         self.queue = queue.Queue()
         self.last_served = datetime(2000, 1, 1)
         self.serving_until = datetime(2000, 1, 1)
+        self.name = "Wursttheke"
+        self.serve_time = 30
 
-    def serving(self):
-        tmp = Shop.serving_customer(self.queue, self.serve_time, self.last_served, "Wursttheke")
+    def serving(self, shop_object):
+        tmp = Shop.serving_customer(shop_object)
         if tmp[0] != 0:
             self.last_served = datetime.now()
         return tmp
@@ -117,15 +125,16 @@ class Wursttheke:
 
 
 class Kaesetheke:
-    serve_time = 60
 
     def __init__(self):
         self.queue = queue.Queue()
         self.last_served = datetime(2000, 1, 1)
         self.serving_until = datetime(2000, 1, 1)
+        self.name = "Käsetheke"
+        self.serve_time = 60
 
-    def serving(self):
-        tmp = Shop.serving_customer(self.queue, self.serve_time, self.last_served, "kaesetheke")
+    def serving(self, shop_object):
+        tmp = Shop.serving_customer(shop_object)
         if tmp[0] != 0:
             self.last_served = datetime.now()
         return tmp
@@ -139,15 +148,16 @@ class Kaesetheke:
 
 
 class Kasse:
-    serve_time = 5
 
     def __init__(self):
         self.queue = queue.Queue()
         self.last_served = datetime(2000, 1, 1)
         self.serving_until = datetime(2000, 1, 1)
+        self.name = "Kasse"
+        self.serve_time = 5
 
-    def serving(self):
-        tmp = Shop.serving_customer(self.queue, self.serve_time, self.last_served, "Kasse")
+    def serving(self, shop_object):
+        tmp = Shop.serving_customer(shop_object)
         if tmp[0] != 0:
             self.last_served = datetime.now()
         return tmp
@@ -224,32 +234,24 @@ baecker.add_customer(t1c2)
 baecker.add_customer(t1c3)
 baecker.add_customer(t1c4)
 baecker.add_customer(t1c5)
-baecker.add_customer(t1c6)
-baecker.add_customer(t1c7)
-baecker.add_customer(t1c8)
-baecker.add_customer(t1c9)
-baecker.add_customer(t1c10)
+
 baecker.add_customer(t2c1)
 baecker.add_customer(t2c2)
 baecker.add_customer(t2c3)
 baecker.add_customer(t2c4)
-baecker.add_customer(t2c5)
-baecker.add_customer(t2c6)
-baecker.add_customer(t2c7)
-baecker.add_customer(t2c8)
-baecker.add_customer(t2c9)
-baecker.add_customer(t2c10)
 
 kaesetheke.add_customer(t1c6)
 kaesetheke.add_customer(t1c7)
 kaesetheke.add_customer(t1c8)
 kaesetheke.add_customer(t1c9)
 kaesetheke.add_customer(t1c10)
-kaesetheke.add_customer(t2c1)
-kaesetheke.add_customer(t2c2)
-kaesetheke.add_customer(t2c3)
-kaesetheke.add_customer(t2c4)
-kaesetheke.add_customer(t2c5)
+
+wursttheke.add_customer(t2c5)
+wursttheke.add_customer(t2c6)
+wursttheke.add_customer(t2c7)
+wursttheke.add_customer(t2c8)
+wursttheke.add_customer(t2c9)
+wursttheke.add_customer(t2c10)
 
 while True:
     if len(heap) > 0:
@@ -257,8 +259,9 @@ while True:
         if x[0] < datetime.now():
             y = heapq.heappop(heap)
             logger.info(y[2] + ' finished serving ' + y[1])
-    print(kaesetheke.serving())
-    print(naecker.serving())
+    print(kaesetheke.serving(kaesetheke))
+    print(baecker.serving(baecker))
+    print(wursttheke.serving(wursttheke))
     print(list(heap))
     time.sleep(1)
 
