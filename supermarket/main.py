@@ -95,8 +95,9 @@ class Baecker:
         return self.queue.qsize()
 
     def add_customer(self, customer):
-        logger.info("Bäcker adding customer " + str(customer.type_id) + str(customer.id))
-        self.queue.put(customer)
+        if self.get_queue_size() < customer.baecker.max_queue_size:
+            logger.info("Bäcker adding customer " + str(customer.type_id) + str(customer.id))
+            self.queue.put(customer)
 
 
 class Wursttheke:
@@ -117,8 +118,9 @@ class Wursttheke:
         return self.queue.qsize()
 
     def add_customer(self, customer):
-        logger.info("Wursttheke adding customer " + str(customer.type_id) + str(customer.id))
-        self.queue.put(customer)
+        if self.get_queue_size() < customer.wursttheke.max_queue_size:
+            logger.info("Wursttheke adding customer " + str(customer.type_id) + str(customer.id))
+            self.queue.put(customer)
 
 
 class Kaesetheke:
@@ -139,8 +141,9 @@ class Kaesetheke:
         return self.queue.qsize()
 
     def add_customer(self, customer):
-        logger.info("Käsetheke adding customer " + str(customer.type_id) + str(customer.id))
-        self.queue.put(customer)
+        if self.get_queue_size() < customer.kaesetheke.max_queue_size:
+            logger.info("Käsetheke adding customer " + str(customer.type_id) + str(customer.id))
+            self.queue.put(customer)
 
 
 class Kasse:
@@ -161,8 +164,9 @@ class Kasse:
         return self.queue.qsize()
 
     def add_customer(self, customer):
-        logger.info("Kasse adding customer " + str(customer.type_id) + str(customer.id))
-        self.queue.put(customer)
+        if self.get_queue_size() < customer.kasse.max_queue_size:
+            logger.info("Kasse adding customer " + str(customer.type_id) + str(customer.id))
+            self.queue.put(customer)
 
 
 heap = []
@@ -229,8 +233,7 @@ t2c8.id = 8
 t2c9.id = 9
 t2c10.id = 10
 
-if baecker.get_queue_size() < t1c1.baecker.max_queue_size:
-    baecker.add_customer(t1c1)
+baecker.add_customer(t1c1)
 # baecker.add_customer(t1c2)
 # baecker.add_customer(t1c3)
 # baecker.add_customer(t1c4)
@@ -241,18 +244,22 @@ if baecker.get_queue_size() < t1c1.baecker.max_queue_size:
 # baecker.add_customer(t2c3)
 # baecker.add_customer(t2c4)
 #
-# kaesetheke.add_customer(t1c6)
+kaesetheke.add_customer(t1c6)
 # kaesetheke.add_customer(t1c7)
 # kaesetheke.add_customer(t1c8)
 # kaesetheke.add_customer(t1c9)
 # kaesetheke.add_customer(t1c10)
 #
-# wursttheke.add_customer(t2c5)
+wursttheke.add_customer(t2c5)
 # wursttheke.add_customer(t2c6)
 # wursttheke.add_customer(t2c7)
 # wursttheke.add_customer(t2c8)
 # wursttheke.add_customer(t2c9)
 # wursttheke.add_customer(t2c10)
+
+kasse.add_customer((t2c2))
+
+
 
 while True:
     if len(heap) > 0:
