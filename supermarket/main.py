@@ -12,7 +12,6 @@ class Station_customer_view:
         self.item_count = item_count
         self.max_queue_size = max_queue_size
 
-
 class Customer:
     def __init__(self, type_id):
 
@@ -21,6 +20,8 @@ class Customer:
             self.wursttheke = Station_customer_view("Wursttheke", 5, 10)
             self.kaesetheke = Station_customer_view("Käsetheke", 3, 5)
             self.kasse = Station_customer_view("Kasse", 30, 20)
+            self.station_sequence = ["Bäcker", "Wursttheke", "Käsetheke", "Kasse"]
+            self.busy = False
             self.type_id = 'A'
             self.id = 0
 
@@ -28,8 +29,36 @@ class Customer:
             self.baecker = Station_customer_view("Bäcker", 3, 20)
             self.wursttheke = Station_customer_view("Wursttheke", 2, 5)
             self.kasse = Station_customer_view("Kasse", 3, 20)
-            self.type_id ='B'
+            self.station_sequence = ["Wursttheke", "Kasse", "Bäcker"]
+            self.busy = False
+            self.type_id = 'B'
             self.id = 0
+
+    def supervise(self):
+        if self.busy:
+            return
+        elif len(self.station_sequence) > 0:
+            if self.station_sequence[0] == "Bäcker":
+                self.current_state = "Bäcker"
+                self.busy = True
+                baecker.add_customer(self)
+            elif self.station_sequence[0] == "Wursttheke":
+                self.current_state = "Wursttheke"
+                self.busy = True
+                wursttheke.add_customer(self)
+            elif self.station_sequence[0] == "Käsetheke":
+                self.current_state = "Käsetheke"
+                self.busy = True
+                kaesetheke.add_customer(self)
+            elif self.station_sequence[0] == "Kasse":
+                self.current_state = "Kasse"
+                self.busy = True
+                kasse.add_customer(self)
+
+    def makeunbusy(self):
+        self.busy = False
+
+
 
 
 class Shop:
@@ -191,75 +220,73 @@ kaesetheke = Kaesetheke()
 wursttheke = Wursttheke()
 kasse = Kasse()
 
-t1c1 = Customer(1)
-t1c2 = Customer(1)
-t1c3 = Customer(1)
-t1c4 = Customer(1)
-t1c5 = Customer(1)
-t1c6 = Customer(1)
-t1c7 = Customer(1)
-t1c8 = Customer(1)
-t1c9= Customer(1)
-t1c10 = Customer(1)
-t1c1.id = 1
-t1c2.id = 2
-t1c3.id = 3
-t1c4.id = 4
-t1c5.id = 5
-t1c6.id = 6
-t1c7.id = 7
-t1c8.id = 8
-t1c9.id = 9
-t1c10.id = 10
+A1 = Customer(1)
+A2 = Customer(1)
+A3 = Customer(1)
+A4 = Customer(1)
+A5 = Customer(1)
+A6 = Customer(1)
+A7 = Customer(1)
+A8 = Customer(1)
+A9= Customer(1)
+A10 = Customer(1)
+A1.id = 1
+A2.id = 2
+A3.id = 3
+A4.id = 4
+A5.id = 5
+A6.id = 6
+A7.id = 7
+A8.id = 8
+A9.id = 9
+A10.id = 10
 
-t2c1 = Customer(2)
-t2c2 = Customer(2)
-t2c3 = Customer(2)
-t2c4 = Customer(2)
-t2c5 = Customer(2)
-t2c6 = Customer(2)
-t2c7 = Customer(2)
-t2c8 = Customer(2)
-t2c9 = Customer(2)
-t2c10 = Customer(2)
-t2c1.id = 1
-t2c2.id = 2
-t2c3.id = 3
-t2c4.id = 4
-t2c5.id = 5
-t2c6.id = 6
-t2c7.id = 7
-t2c8.id = 8
-t2c9.id = 9
-t2c10.id = 10
+B1 = Customer(2)
+B2 = Customer(2)
+B3 = Customer(2)
+B4 = Customer(2)
+B5 = Customer(2)
+B6 = Customer(2)
+B7 = Customer(2)
+B8 = Customer(2)
+B9 = Customer(2)
+B10 = Customer(2)
+B1.id = 1
+B2.id = 2
+B3.id = 3
+B4.id = 4
+B5.id = 5
+B6.id = 6
+B7.id = 7
+B8.id = 8
+B9.id = 9
+B10.id = 10
 
-baecker.add_customer(t1c1)
-# baecker.add_customer(t1c2)
-# baecker.add_customer(t1c3)
-# baecker.add_customer(t1c4)
-# baecker.add_customer(t1c5)
+#baecker.add_customer(A1)
+# baecker.add_customer(A2)
+# baecker.add_customer(A3)
+# baecker.add_customer(A4)
+# baecker.add_customer(A5)
 #
-# baecker.add_customer(t2c1)
-# baecker.add_customer(t2c2)
-# baecker.add_customer(t2c3)
-# baecker.add_customer(t2c4)
+# baecker.add_customer(B1)
+# baecker.add_customer(B2)
+# baecker.add_customer(B3)
+# baecker.add_customer(B4)
 #
-kaesetheke.add_customer(t1c6)
-# kaesetheke.add_customer(t1c7)
-# kaesetheke.add_customer(t1c8)
-# kaesetheke.add_customer(t1c9)
-# kaesetheke.add_customer(t1c10)
+#kaesetheke.add_customer(A6)
+# kaesetheke.add_customer(A7)
+# kaesetheke.add_customer(A8)
+# kaesetheke.add_customer(A9)
+# kaesetheke.add_customer(A10)
 #
-wursttheke.add_customer(t2c5)
-# wursttheke.add_customer(t2c6)
-# wursttheke.add_customer(t2c7)
-# wursttheke.add_customer(t2c8)
-# wursttheke.add_customer(t2c9)
-# wursttheke.add_customer(t2c10)
+#wursttheke.add_customer(B5)
+# wursttheke.add_customer(B6)
+# wursttheke.add_customer(B7)
+# wursttheke.add_customer(B8)
+# wursttheke.add_customer(B9)
+# wursttheke.add_customer(B10)
 
-kasse.add_customer((t2c2))
-
-
+#kasse.add_customer(B2)
 
 while True:
     if len(heap) > 0:
@@ -267,11 +294,17 @@ while True:
         if x[0] < datetime.now():
             y = heapq.heappop(heap)
             logger.info(y[2] + ' finished serving ' + y[1])
+            eval(y[1] + '.station_sequence.pop(0)')
+            eval(y[1] + '.makeunbusy()')
+    A1.supervise()
+    B1.supervise()
     kaesetheke.serving(kaesetheke)
     baecker.serving(baecker)
     kasse.serving(kasse)
     wursttheke.serving(wursttheke)
     print(list(heap))
+    if len(heap) == 0:
+        break
     time.sleep(1)
 
 
