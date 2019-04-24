@@ -329,18 +329,15 @@ class Supermarket:
 
     def supermarket_supervisor(self, event_queue):
         while True:
-            if len(event_queue) > 0 and event_queue[0][0] <= datetime.now():
+            if len(event_queue) > 0 and event_queue[0][0] <= datetime.now():  # appending customer to active_customer_list
                 customer = heappop(event_queue)[1]
-                print("appending: " + str(customer.type_id) + str(customer.id))
                 self.active_customer_list.append(customer)
                 str(customer.type_id)
-            else:
-                print("supervising: " + str(len(self.active_customer_list)))
+            else:  # supervising the customers
                 for item in self.active_customer_list:
                     if item.end_time == datetime(2000, 1, 1):
                         item.supervise()
-                    else:
-                        print("removing: " + str(item.type_id) + str(item.id))
+                    else:  # removing customer from active_customer_list
                         self.active_customer_list.remove(item)
                 break;
 
@@ -352,7 +349,6 @@ handler.setLevel(logging.INFO)
 formatter = logging.Formatter('%(asctime)s - %(message)s')
 handler.setFormatter(formatter)
 logger.addHandler(handler)
-logger.info('Test Start')
 baecker = Baecker()
 kaesetheke = Kaesetheke()
 wursttheke = Wursttheke()
