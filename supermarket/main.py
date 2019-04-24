@@ -5,6 +5,8 @@ import queue
 import logging
 from datetime import datetime, timedelta
 
+speedup = 40
+
 
 class StationCustomerView:
     def __init__(self, station_type, item_count, max_queue_size):
@@ -92,7 +94,7 @@ class Shop:
                     tmptime = customer.kaesetheke.item_count * shop_object.serve_time
                 if shop_object.name == "Wursttheke":
                     tmptime = customer.wursttheke.item_count * shop_object.serve_time
-                heappush(heap, (datetime.now() + timedelta(0, tmptime), tmpstr, shop_object.name))
+                heappush(supermarket.heap, (datetime.now() + timedelta(0, tmptime), tmpstr, shop_object.name))
                 shop_object.serving_until = datetime.now() + timedelta(0, tmptime)
                 logger.info(shop_object.name + " serving customer " + tmpstr)
                 return tmptime, tmpstr
@@ -123,7 +125,7 @@ class Baecker:
         self.last_served = datetime(2000, 1, 1)
         self.serving_until = datetime(2000, 1, 1)
         self.name = "Bäcker"
-        self.serve_time = 10
+        self.serve_time = 10 / speedup
         self.skip_count = 0
         self.successful_customer = []
 
@@ -142,6 +144,8 @@ class Baecker:
             self.queue.put(customer)
         else:
             self.skip_count += 1
+            customer.station_sequence.remove("Bäcker")
+            customer.makeunbusy()
 
 
 class Wursttheke:
@@ -150,7 +154,7 @@ class Wursttheke:
         self.last_served = datetime(2000, 1, 1)
         self.serving_until = datetime(2000, 1, 1)
         self.name = "Wursttheke"
-        self.serve_time = 30
+        self.serve_time = 30 / speedup
         self.skip_count = 0
         self.successful_customer = []
 
@@ -169,6 +173,8 @@ class Wursttheke:
             self.queue.put(customer)
         else:
             self.skip_count += 1
+            customer.station_sequence.remove("Wursttheke")
+            customer.makeunbusy()
 
 
 class Kaesetheke:
@@ -177,7 +183,7 @@ class Kaesetheke:
         self.last_served = datetime(2000, 1, 1)
         self.serving_until = datetime(2000, 1, 1)
         self.name = "Käsetheke"
-        self.serve_time = 60
+        self.serve_time = 60 / speedup
         self.skip_count = 0
         self.successful_customer = []
 
@@ -196,6 +202,8 @@ class Kaesetheke:
             self.queue.put(customer)
         else:
             self.skip_count += 1
+            customer.station_sequence.remove("Käsetheke")
+            customer.makeunbusy()
 
 
 class Kasse:
@@ -204,7 +212,7 @@ class Kasse:
         self.last_served = datetime(2000, 1, 1)
         self.serving_until = datetime(2000, 1, 1)
         self.name = "Kasse"
-        self.serve_time = 5
+        self.serve_time = 5 / speedup
         self.skip_count = 0
         self.successful_customer = []
 
@@ -223,87 +231,64 @@ class Kasse:
             self.queue.put(customer)
         else:
             self.skip_count += 1
-
-
-heap = []
-heapify(heap)
-
-logger = logging.getLogger('msglog')
-logger.setLevel(logging.INFO)
-handler = logging.FileHandler('supermarkt_station_x.txt')
-handler.setLevel(logging.INFO)
-formatter = logging.Formatter('%(asctime)s - %(message)s')
-handler.setFormatter(formatter)
-logger.addHandler(handler)
-logger.info('Test Start')
-
-
-
-
-
-
-baecker = Baecker()
-kaesetheke = Kaesetheke()
-wursttheke = Wursttheke()
-kasse = Kasse()
-
-A1 = Customer(1)
-A2 = Customer(1)
-A3 = Customer(1)
-A4 = Customer(1)
-A5 = Customer(1)
-A6 = Customer(1)
-A7 = Customer(1)
-A8 = Customer(1)
-A9= Customer(1)
-A10 = Customer(1)
-A1.id = 1
-A2.id = 2
-A3.id = 3
-A4.id = 4
-A5.id = 5
-A6.id = 6
-A7.id = 7
-A8.id = 8
-A9.id = 9
-A10.id = 10
-
-B1 = Customer(2)
-B2 = Customer(2)
-B3 = Customer(2)
-B4 = Customer(2)
-B5 = Customer(2)
-B6 = Customer(2)
-B7 = Customer(2)
-B8 = Customer(2)
-B9 = Customer(2)
-B10 = Customer(2)
-B1.id = 1
-B2.id = 2
-B3.id = 3
-B4.id = 4
-B5.id = 5
-B6.id = 6
-B7.id = 7
-B8.id = 8
-B9.id = 9
-B10.id = 10
+            customer.station_sequence.remove("Kasse")
+            customer.makeunbusy()
 
 
 class Supermarket:
     def __init__(self):
+        self.heap = []
         self.active_customer_list = []
+        self.A1 = Customer(1)
+        self.A2 = Customer(1)
+        self.A3 = Customer(1)
+        self.A4 = Customer(1)
+        self.A5 = Customer(1)
+        self.A6 = Customer(1)
+        self.A7 = Customer(1)
+        self.A8 = Customer(1)
+        self.A9 = Customer(1)
+        self.A10 = Customer(1)
+        self.A1.id = 1
+        self.A2.id = 2
+        self.A3.id = 3
+        self.A4.id = 4
+        self.A5.id = 5
+        self.A6.id = 6
+        self.A7.id = 7
+        self.A8.id = 8
+        self.A9.id = 9
+        self.A10.id = 10
+        self.B1 = Customer(2)
+        self.B2 = Customer(2)
+        self.B3 = Customer(2)
+        self.B4 = Customer(2)
+        self.B5 = Customer(2)
+        self.B6 = Customer(2)
+        self.B7 = Customer(2)
+        self.B8 = Customer(2)
+        self.B9 = Customer(2)
+        self.B10 = Customer(2)
+        self.B1.id = 1
+        self.B2.id = 2
+        self.B3.id = 3
+        self.B4.id = 4
+        self.B5.id = 5
+        self.B6.id = 6
+        self.B7.id = 7
+        self.B8.id = 8
+        self.B9.id = 9
+        self.B10.id = 10
         self.event_queue = self.initiate_event_queue()
 
-
     def check_if_finished_at_station(self):
-        if len(heap) > 0:
-            x = heap[0]
+        if len(supermarket.heap) > 0:
+            x = supermarket.heap[0]
             if x[0] < datetime.now():
-                y = heappop(heap)
+                y = heappop(supermarket.heap)
                 logger.info(y[2] + ' finished serving ' + y[1])
-                eval(y[1] + '.station_sequence.pop(0)')
-                eval(y[1] + '.makeunbusy()')
+                eval('self.' + y[1] + '.station_sequence.pop(0)')
+                eval('self.' + y[1] + '.makeunbusy()')
                 if y[2] == "Bäcker":
                     baecker.successful_customer.append(y[1])
                 elif y[2] == "Wursttheke":
@@ -314,28 +299,29 @@ class Supermarket:
                     kasse.successful_customer.append(y[1])
 
     def initiate_event_queue(self):
+        heapify(self.heap)
         event_queue = []
         event_list = []
-        event_list.append((datetime.now() + timedelta(seconds=0), A1))
-        event_list.append((datetime.now() + timedelta(seconds=200), A2))
-        event_list.append((datetime.now() + timedelta(seconds=400), A3))
-        event_list.append((datetime.now() + timedelta(seconds=600), A4))
-        event_list.append((datetime.now() + timedelta(seconds=800), A5))
-        event_list.append((datetime.now() + timedelta(seconds=1000), A6))
-        event_list.append((datetime.now() + timedelta(seconds=1200), A7))
-        event_list.append((datetime.now() + timedelta(seconds=1400), A8))
-        event_list.append((datetime.now() + timedelta(seconds=1600), A9))
-        event_list.append((datetime.now() + timedelta(seconds=1800), A10))
-        event_list.append((datetime.now() + timedelta(seconds=1), B1))
-        event_list.append((datetime.now() + timedelta(seconds=61), B2))
-        event_list.append((datetime.now() + timedelta(seconds=121), B3))
-        event_list.append((datetime.now() + timedelta(seconds=181), B4))
-        event_list.append((datetime.now() + timedelta(seconds=241), B5))
-        event_list.append((datetime.now() + timedelta(seconds=301), B6))
-        event_list.append((datetime.now() + timedelta(seconds=361), B7))
-        event_list.append((datetime.now() + timedelta(seconds=421), B8))
-        event_list.append((datetime.now() + timedelta(seconds=481), B9))
-        event_list.append((datetime.now() + timedelta(seconds=541), B10))
+        event_list.append((datetime.now() + timedelta(seconds=0) / speedup, self.A1))
+        event_list.append((datetime.now() + timedelta(seconds=200) / speedup, self.A2))
+        event_list.append((datetime.now() + timedelta(seconds=400) / speedup, self.A3))
+        event_list.append((datetime.now() + timedelta(seconds=600) / speedup, self.A4))
+        event_list.append((datetime.now() + timedelta(seconds=800) / speedup, self.A5))
+        event_list.append((datetime.now() + timedelta(seconds=1000) / speedup, self.A6))
+        event_list.append((datetime.now() + timedelta(seconds=1200) / speedup, self.A7))
+        event_list.append((datetime.now() + timedelta(seconds=1400) / speedup, self.A8))
+        event_list.append((datetime.now() + timedelta(seconds=1600) / speedup, self.A9))
+        event_list.append((datetime.now() + timedelta(seconds=1800) / speedup, self.A10))
+        event_list.append((datetime.now() + timedelta(seconds=1) / speedup, self.B1))
+        event_list.append((datetime.now() + timedelta(seconds=61) / speedup, self.B2))
+        event_list.append((datetime.now() + timedelta(seconds=121) / speedup, self.B3))
+        event_list.append((datetime.now() + timedelta(seconds=181) / speedup, self.B4))
+        event_list.append((datetime.now() + timedelta(seconds=241) / speedup, self.B5))
+        event_list.append((datetime.now() + timedelta(seconds=301) / speedup, self.B6))
+        event_list.append((datetime.now() + timedelta(seconds=361) / speedup, self.B7))
+        event_list.append((datetime.now() + timedelta(seconds=421) / speedup, self.B8))
+        event_list.append((datetime.now() + timedelta(seconds=481) / speedup, self.B9))
+        event_list.append((datetime.now() + timedelta(seconds=541) / speedup, self.B10))
         for item in event_list:
             heappush(event_queue, item)
         event_queue.sort()
@@ -343,7 +329,7 @@ class Supermarket:
 
     def supermarket_supervisor(self, event_queue):
         while True:
-            if event_queue[0][0] <= datetime.now():
+            if len(event_queue) > 0 and event_queue[0][0] <= datetime.now():
                 customer = heappop(event_queue)[1]
                 print("appending: " + str(customer.type_id) + str(customer.id))
                 self.active_customer_list.append(customer)
@@ -359,8 +345,20 @@ class Supermarket:
                 break;
 
 
-
+logger = logging.getLogger('msglog')
+logger.setLevel(logging.INFO)
+handler = logging.FileHandler('supermarkt_station_x.txt')
+handler.setLevel(logging.INFO)
+formatter = logging.Formatter('%(asctime)s - %(message)s')
+handler.setFormatter(formatter)
+logger.addHandler(handler)
+logger.info('Test Start')
+baecker = Baecker()
+kaesetheke = Kaesetheke()
+wursttheke = Wursttheke()
+kasse = Kasse()
 supermarket = Supermarket()
+
 while True:
     supermarket.check_if_finished_at_station()
     supermarket.supermarket_supervisor(supermarket.event_queue)
@@ -368,10 +366,38 @@ while True:
     baecker.serving(baecker)
     kasse.serving(kasse)
     wursttheke.serving(wursttheke)
-    print(list(heap))
-    if len(heap) == 0:
+    print(list(supermarket.heap))
+    if len(supermarket.heap) == 0:
+        print("Successful Customers at Bäcker: " + str(len(baecker.successful_customer)))
+        print("Customers that skipped Bäcker: " + str(baecker.skip_count))
+        print("Successful Customers at Wursttheke: " + str(len(wursttheke.successful_customer)))
+        print("Customers that skipped Wursttheke: " + str(wursttheke.skip_count))
+        print("Successful Customers at Käsetheke: " + str(len(kaesetheke.successful_customer)))
+        print("Customers that skipped Käsetheke: " + str(kaesetheke.skip_count))
+        print("Successful Customers at Kasse: " + str(len(kasse.successful_customer)))
+        print("Customers that skipped Kasse: " + str(kasse.skip_count))
+        print("Customer A1 time spent in Supermarket: " + str((supermarket.A1.end_time - supermarket.A1.start_time) * speedup))
+        print("Customer A2 time spent in Supermarket: " + str((supermarket.A2.end_time - supermarket.A2.start_time) * speedup))
+        print("Customer A3 time spent in Supermarket: " + str((supermarket.A3.end_time - supermarket.A3.start_time) * speedup))
+        print("Customer A4 time spent in Supermarket: " + str((supermarket.A4.end_time - supermarket.A4.start_time) * speedup))
+        print("Customer A5 time spent in Supermarket: " + str((supermarket.A5.end_time - supermarket.A5.start_time) * speedup))
+        print("Customer A6 time spent in Supermarket: " + str((supermarket.A6.end_time - supermarket.A6.start_time) * speedup))
+        print("Customer A7 time spent in Supermarket: " + str((supermarket.A7.end_time - supermarket.A7.start_time) * speedup))
+        print("Customer A8 time spent in Supermarket: " + str((supermarket.A8.end_time - supermarket.A8.start_time) * speedup))
+        print("Customer A9 time spent in Supermarket: " + str((supermarket.A9.end_time - supermarket.A9.start_time) * speedup))
+        print("Customer A10 time spent in Supermarket: " + str((supermarket.A10.end_time - supermarket.A10.start_time) * speedup))
+        print("Customer B1 time spent in Supermarket: " + str((supermarket.B1.end_time - supermarket.B1.start_time) * speedup))
+        print("Customer B2 time spent in Supermarket: " + str((supermarket.B2.end_time - supermarket.B2.start_time) * speedup))
+        print("Customer B3 time spent in Supermarket: " + str((supermarket.B3.end_time - supermarket.B3.start_time) * speedup))
+        print("Customer B4 time spent in Supermarket: " + str((supermarket.B4.end_time - supermarket.B4.start_time) * speedup))
+        print("Customer B5 time spent in Supermarket: " + str((supermarket.B5.end_time - supermarket.B5.start_time) * speedup))
+        print("Customer B6 time spent in Supermarket: " + str((supermarket.B6.end_time - supermarket.B6.start_time) * speedup))
+        print("Customer B7 time spent in Supermarket: " + str((supermarket.B7.end_time - supermarket.B7.start_time) * speedup))
+        print("Customer B8 time spent in Supermarket: " + str((supermarket.B8.end_time - supermarket.B8.start_time) * speedup))
+        print("Customer B9 time spent in Supermarket: " + str((supermarket.B9.end_time - supermarket.B9.start_time) * speedup))
+        print("Customer B10 time spent in Supermarket: " + str((supermarket.B10.end_time - supermarket.B10.start_time) * speedup))
         break
-    time.sleep(1)
+    time.sleep(1 / speedup)
 
 
 # t = threading.Thread(target=Baecker.start_serving)
