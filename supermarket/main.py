@@ -5,7 +5,7 @@ import queue
 import logging
 from datetime import datetime, timedelta
 
-speedup = 40
+speedup = 30
 
 
 class StationCustomerView:
@@ -239,6 +239,7 @@ class Supermarket:
     def __init__(self):
         self.heap = []
         self.active_customer_list = []
+        self.customer_list = []
         self.A1 = Customer(1)
         self.A2 = Customer(1)
         self.A3 = Customer(1)
@@ -279,6 +280,9 @@ class Supermarket:
         self.B8.id = 8
         self.B9.id = 9
         self.B10.id = 10
+        self.customer_list = [self.A1, self.A2, self.A3, self.A4, self.A5, self.A6, self.A7, self.A8, self.A9, self.A10,
+                              self.B1, self.B2, self.B3, self.B4, self.B5, self.B6, self.B7, self.B8, self.B9, self.B10,
+                              ]
         self.event_queue = self.initiate_event_queue()
 
     def check_if_finished_at_station(self):
@@ -372,26 +376,9 @@ while True:
         print("Customers that skipped Käsetheke: " + str(kaesetheke.skip_count))
         print("Successful Customers at Kasse: " + str(len(kasse.successful_customer)))
         print("Customers that skipped Kasse: " + str(kasse.skip_count))
-        print("Customer A1 time spent in Supermarket: " + str((supermarket.A1.end_time - supermarket.A1.start_time) * speedup))
-        print("Customer A2 time spent in Supermarket: " + str((supermarket.A2.end_time - supermarket.A2.start_time) * speedup))
-        print("Customer A3 time spent in Supermarket: " + str((supermarket.A3.end_time - supermarket.A3.start_time) * speedup))
-        print("Customer A4 time spent in Supermarket: " + str((supermarket.A4.end_time - supermarket.A4.start_time) * speedup))
-        print("Customer A5 time spent in Supermarket: " + str((supermarket.A5.end_time - supermarket.A5.start_time) * speedup))
-        print("Customer A6 time spent in Supermarket: " + str((supermarket.A6.end_time - supermarket.A6.start_time) * speedup))
-        print("Customer A7 time spent in Supermarket: " + str((supermarket.A7.end_time - supermarket.A7.start_time) * speedup))
-        print("Customer A8 time spent in Supermarket: " + str((supermarket.A8.end_time - supermarket.A8.start_time) * speedup))
-        print("Customer A9 time spent in Supermarket: " + str((supermarket.A9.end_time - supermarket.A9.start_time) * speedup))
-        print("Customer A10 time spent in Supermarket: " + str((supermarket.A10.end_time - supermarket.A10.start_time) * speedup))
-        print("Customer B1 time spent in Supermarket: " + str((supermarket.B1.end_time - supermarket.B1.start_time) * speedup))
-        print("Customer B2 time spent in Supermarket: " + str((supermarket.B2.end_time - supermarket.B2.start_time) * speedup))
-        print("Customer B3 time spent in Supermarket: " + str((supermarket.B3.end_time - supermarket.B3.start_time) * speedup))
-        print("Customer B4 time spent in Supermarket: " + str((supermarket.B4.end_time - supermarket.B4.start_time) * speedup))
-        print("Customer B5 time spent in Supermarket: " + str((supermarket.B5.end_time - supermarket.B5.start_time) * speedup))
-        print("Customer B6 time spent in Supermarket: " + str((supermarket.B6.end_time - supermarket.B6.start_time) * speedup))
-        print("Customer B7 time spent in Supermarket: " + str((supermarket.B7.end_time - supermarket.B7.start_time) * speedup))
-        print("Customer B8 time spent in Supermarket: " + str((supermarket.B8.end_time - supermarket.B8.start_time) * speedup))
-        print("Customer B9 time spent in Supermarket: " + str((supermarket.B9.end_time - supermarket.B9.start_time) * speedup))
-        print("Customer B10 time spent in Supermarket: " + str((supermarket.B10.end_time - supermarket.B10.start_time) * speedup))
+        for customer in supermarket.customer_list:
+            print("Customer " + customer.type_id + str(customer.id) + " time spent in Supermarket: " + str(
+                (customer.end_time - customer.start_time) * speedup))
         break
     time.sleep(1 / speedup)
 
