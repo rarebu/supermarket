@@ -20,24 +20,26 @@ class Customer:
         self.end_time = datetime(2000, 1, 1)
         self.busy = False
         self.first_time_here = True
-        self.current_state = ""
+        self.current_state = ''
+        self.skipped_station = False
 
         if type_id == 1:    # Type A
-            self.baecker = StationCustomerView("Bäcker", 10, 10)
-            self.wursttheke = StationCustomerView("Wursttheke", 5, 10)
-            self.kaesetheke = StationCustomerView("Käsetheke", 3, 5)
-            self.kasse = StationCustomerView("Kasse", 30, 20)
-            self.station_sequence = ["Bäcker", "Wursttheke", "Käsetheke", "Kasse"]
+            self.baecker = StationCustomerView('Bäcker', 10, 10)
+            self.wursttheke = StationCustomerView('Wursttheke', 5, 10)
+            self.kaesetheke = StationCustomerView('Käsetheke', 3, 5)
+            self.kasse = StationCustomerView('Kasse', 30, 20)
+            self.station_sequence = ['Bäcker', 'Wursttheke', 'Käsetheke', 'Kasse']
             self.type_id = 'A'
 
         elif type_id == 2:    # Type B
-            self.baecker = StationCustomerView("Bäcker", 3, 20)
-            self.wursttheke = StationCustomerView("Wursttheke", 2, 5)
-            self.kasse = StationCustomerView("Kasse", 3, 20)
-            self.station_sequence = ["Wursttheke", "Kasse", "Bäcker"]
+            self.baecker = StationCustomerView('Bäcker', 3, 20)
+            self.wursttheke = StationCustomerView('Wursttheke', 2, 5)
+            self.kasse = StationCustomerView('Kasse', 3, 20)
+            self.station_sequence = ['Wursttheke', 'Kasse', 'Bäcker']
             self.type_id = 'B'
 
-    def supervise(self, tmp_baecker, tmp_wursttheke, tmp_kaesetheke, tmp_kasse, logger_supermarket_station):
+    def supervise(self, tmp_baecker, tmp_wursttheke, tmp_kaesetheke, tmp_kasse, logger_supermarket_station,
+                  logger_supermarket_customer):
         if self.busy:
             return
         elif self.first_time_here:
@@ -45,23 +47,26 @@ class Customer:
             self.first_time_here = False
 
         if len(self.station_sequence) > 0:
-            if self.station_sequence[0] == "Bäcker":
-                self.current_state = "Bäcker"
+            if self.station_sequence[0] == 'Bäcker':
+                self.current_state = 'Bäcker'
                 self.busy = True
                 tmp_baecker.add_customer(self, logger_supermarket_station)
-                #logger_supermarket_customer.info(self.type_id + str(self.id) + ' Queueing at Bäcker') todo
-            elif self.station_sequence[0] == "Wursttheke":
-                self.current_state = "Wursttheke"
+                logger_supermarket_customer.info(self.type_id + str(self.id) + ' Queueing at Bäcker')
+            elif self.station_sequence[0] == 'Wursttheke':
+                self.current_state = 'Wursttheke'
                 self.busy = True
                 tmp_wursttheke.add_customer(self, logger_supermarket_station)
-            elif self.station_sequence[0] == "Käsetheke":
-                self.current_state = "Käsetheke"
+                logger_supermarket_customer.info(self.type_id + str(self.id) + ' Queueing at Wursttheke')
+            elif self.station_sequence[0] == 'Käsetheke':
+                self.current_state = 'Käsetheke'
                 self.busy = True
                 tmp_kaesetheke.add_customer(self, logger_supermarket_station)
-            elif self.station_sequence[0] == "Kasse":
-                self.current_state = "Kasse"
+                logger_supermarket_customer.info(self.type_id + str(self.id) + ' Queueing at Käsetheke')
+            elif self.station_sequence[0] == 'Kasse':
+                self.current_state = 'Kasse'
                 self.busy = True
                 tmp_kasse.add_customer(self, logger_supermarket_station)
+                logger_supermarket_customer.info(self.type_id + str(self.id) + ' Queueing at Kasse')
         else:
             self.end_time = datetime.now()
 
@@ -83,7 +88,7 @@ class Shop:
 
 def serving_customer(self, tmp_supermarket, logger_supermarket_station):
     if Shop.serving_items(self):
-        return 0, ""
+        return 0, ''
 
     now = datetime.now()
     diff = now - self.last_served
@@ -92,21 +97,21 @@ def serving_customer(self, tmp_supermarket, logger_supermarket_station):
         if not self.queue.empty():
             customer = self.queue.get()
             tmpstr = str(customer.type_id) + str(customer.id)
-            if self.name == "Bäcker":
+            if self.name == 'Bäcker':
                 tmptime = customer.baecker.item_count * self.serve_time
-            if self.name == "Kasse":
+            if self.name == 'Kasse':
                 tmptime = customer.kasse.item_count * self.serve_time
-            if self.name == "Käsetheke":
+            if self.name == 'Käsetheke':
                 tmptime = customer.kaesetheke.item_count * self.serve_time
-            if self.name == "Wursttheke":
+            if self.name == 'Wursttheke':
                 tmptime = customer.wursttheke.item_count * self.serve_time
             heappush(tmp_supermarket.heap, (datetime.now() + timedelta(0, tmptime), tmpstr, self.name))
             self.serving_until = datetime.now() + timedelta(0, tmptime)
-            logger_supermarket_station.info(self.name + " serving customer " + tmpstr)
+            logger_supermarket_station.info(self.name + ' serving customer ' + tmpstr)
             return tmptime, tmpstr
-        return 0, ""
+        return 0, ''
     else:
-        return 0, ""
+        return 0, ''
 
 
 class Baecker:
@@ -114,7 +119,7 @@ class Baecker:
         self.queue = queue.Queue()
         self.last_served = datetime(2000, 1, 1)
         self.serving_until = datetime(2000, 1, 1)
-        self.name = "Bäcker"
+        self.name = 'Bäcker'
         self.serve_time = 10 / speedup
         self.skip_count = 0
         self.successful_customer = []
@@ -130,11 +135,12 @@ class Baecker:
 
     def add_customer(self, customer, logger_supermarket_station):
         if self.get_queue_size() < customer.baecker.max_queue_size:
-            logger_supermarket_station.info("Bäcker adding customer " + str(customer.type_id) + str(customer.id))
+            logger_supermarket_station.info('Bäcker adding customer ' + str(customer.type_id) + str(customer.id))
             self.queue.put(customer)
         else:
             self.skip_count += 1
-            customer.station_sequence.remove("Bäcker")
+            customer.skipped_station = True
+            customer.station_sequence.remove('Bäcker')
             customer.makeunbusy()
 
 
@@ -143,7 +149,7 @@ class Wursttheke:
         self.queue = queue.Queue()
         self.last_served = datetime(2000, 1, 1)
         self.serving_until = datetime(2000, 1, 1)
-        self.name = "Wursttheke"
+        self.name = 'Wursttheke'
         self.serve_time = 30 / speedup
         self.skip_count = 0
         self.successful_customer = []
@@ -159,11 +165,12 @@ class Wursttheke:
 
     def add_customer(self, customer, logger_supermarket_station):
         if self.get_queue_size() < customer.wursttheke.max_queue_size:
-            logger_supermarket_station.info("Wursttheke adding customer " + str(customer.type_id) + str(customer.id))
+            logger_supermarket_station.info('Wursttheke adding customer ' + str(customer.type_id) + str(customer.id))
             self.queue.put(customer)
         else:
             self.skip_count += 1
-            customer.station_sequence.remove("Wursttheke")
+            customer.skipped_station = True
+            customer.station_sequence.remove('Wursttheke')
             customer.makeunbusy()
 
 
@@ -172,7 +179,7 @@ class Kaesetheke:
         self.queue = queue.Queue()
         self.last_served = datetime(2000, 1, 1)
         self.serving_until = datetime(2000, 1, 1)
-        self.name = "Käsetheke"
+        self.name = 'Käsetheke'
         self.serve_time = 60 / speedup
         self.skip_count = 0
         self.successful_customer = []
@@ -188,11 +195,12 @@ class Kaesetheke:
 
     def add_customer(self, customer, logger_supermarket_station):
         if self.get_queue_size() < customer.kaesetheke.max_queue_size:
-            logger_supermarket_station.info("Käsetheke adding customer " + str(customer.type_id) + str(customer.id))
+            logger_supermarket_station.info('Käsetheke adding customer ' + str(customer.type_id) + str(customer.id))
             self.queue.put(customer)
         else:
             self.skip_count += 1
-            customer.station_sequence.remove("Käsetheke")
+            customer.skipped_station = True
+            customer.station_sequence.remove('Käsetheke')
             customer.makeunbusy()
 
 
@@ -201,7 +209,7 @@ class Kasse:
         self.queue = queue.Queue()
         self.last_served = datetime(2000, 1, 1)
         self.serving_until = datetime(2000, 1, 1)
-        self.name = "Kasse"
+        self.name = 'Kasse'
         self.serve_time = 5 / speedup
         self.skip_count = 0
         self.successful_customer = []
@@ -217,16 +225,19 @@ class Kasse:
 
     def add_customer(self, customer, logger_supermarket_station):
         if self.get_queue_size() < customer.kasse.max_queue_size:
-            logger_supermarket_station.info("Kasse adding customer " + str(customer.type_id) + str(customer.id))
+            logger_supermarket_station.info('Kasse adding customer ' + str(customer.type_id) + str(customer.id))
             self.queue.put(customer)
         else:
             self.skip_count += 1
-            customer.station_sequence.remove("Kasse")
+            customer.skipped_station = True
+            customer.station_sequence.remove('Kasse')
             customer.makeunbusy()
 
 
 class Supermarket:
     def __init__(self, speedup):
+        self.heap_lock = threading.Lock()
+        self.event_queue_lock = threading.Lock()
         self.heap = []
         self.active_customer_list = []
         self.customer_list = []
@@ -276,21 +287,24 @@ class Supermarket:
         self.event_queue = self.initiate_event_queue(speedup)
 
     def check_if_finished_at_station(self, tmp_baecker, tmp_wursttheke, tmp_kaesetheke, tmp_kasse,
-                                     logger_supermarket_station):
+                                     logger_supermarket_station, logger_supermarket_customer):
         if len(self.heap) > 0:
             x = self.heap[0]
             if x[0] < datetime.now():
+                self.heap_lock.acquire()
                 y = heappop(self.heap)
-                logger_supermarket_station.info(y[2] + ' finished ' + y[1])
+                self.heap_lock.release()
+                logger_supermarket_station.info(y[2] + ' finished customer' + y[1])
+                logger_supermarket_customer.info(y[1] + ' finished at' + y[2])
                 eval('self.' + y[1] + '.station_sequence.pop(0)')
                 eval('self.' + y[1] + '.makeunbusy()')
-                if y[2] == "Bäcker":
+                if y[2] == 'Bäcker':
                     tmp_baecker.successful_customer.append(y[1])
-                elif y[2] == "Wursttheke":
+                elif y[2] == 'Wursttheke':
                     tmp_wursttheke.successful_customer.append(y[1])
-                elif y[2] == "Käsetheke":
+                elif y[2] == 'Käsetheke':
                     tmp_kaesetheke.successful_customer.append(y[1])
-                elif y[2] == "Kasse":
+                elif y[2] == 'Kasse':
                     tmp_kasse.successful_customer.append(y[1])
 
     def initiate_event_queue(self, speedup):
@@ -323,54 +337,100 @@ class Supermarket:
         return event_queue
 
     def supermarket_supervisor(self, tmp_baecker, tmp_wursttheke, tmp_kaesetheke, tmp_kasse,
-                               logger_supermarket_station):
+                               logger_supermarket_station, logger_supermarket_customer):
         while True:
             if len(self.event_queue) > 0 and self.event_queue[0][0] <= datetime.now():  # appending customer to active_customer_list
+                self.event_queue_lock.acquire()
                 customer = heappop(self.event_queue)[1]
+                self.event_queue_lock.release()
                 self.active_customer_list.append(customer)
-                str(customer.type_id)
             else:                                                                            # supervising the customers
                 for item in self.active_customer_list:
                     if item.end_time == datetime(2000, 1, 1):
                         item.supervise(tmp_baecker, tmp_wursttheke, tmp_kaesetheke, tmp_kasse,
-                                       logger_supermarket_station)
+                                       logger_supermarket_station, logger_supermarket_customer)
                     else:                                                  # removing customer from active_customer_list
                         self.active_customer_list.remove(item)
                 break
 
-    def print_stats(self, tmp_baecker, tmp_wursttheke, tmp_kaesetheke, tmp_kasse, speedup):
-        print("Successful Customers at Bäcker: " + str(len(tmp_baecker.successful_customer)))
-        print("Customers that skipped Bäcker: " + str(tmp_baecker.skip_count))
-        print("Successful Customers at Wursttheke: " + str(len(tmp_wursttheke.successful_customer)))
-        print("Customers that skipped Wursttheke: " + str(tmp_wursttheke.skip_count))
-        print("Successful Customers at Käsetheke: " + str(len(tmp_kaesetheke.successful_customer)))
-        print("Customers that skipped Käsetheke: " + str(tmp_kaesetheke.skip_count))
-        print("Successful Customers at Kasse: " + str(len(tmp_kasse.successful_customer)))
-        print("Customers that skipped Kasse: " + str(tmp_kasse.skip_count))
+    def print_stats(self, tmp_baecker, tmp_wursttheke, tmp_kaesetheke, tmp_kasse, speedup, simulation_start,
+                    logger_supermarket):
+        avg_time = timedelta()
+        total_customers = len(self.customer_list)
+        skip_count = 0
+        customer_time_in_shop_list = []
         for customer in self.customer_list:
-            print("Customer " + customer.type_id + str(customer.id) + " time spent in Supermarket: " + str(
-                (customer.end_time - customer.start_time) * speedup))
+            customer_time_in_shop_list.append((customer.end_time - customer.start_time) * speedup)
+            if customer.skipped_station:
+                skip_count += 1
+        for customer_time in customer_time_in_shop_list:
+            avg_time = avg_time + customer_time
+        avg_time = avg_time / len(customer_time_in_shop_list)
+        logger_supermarket.info('Simulationsende: ' + str(datetime.now() - simulation_start))
+        logger_supermarket.info('Anzahl Kunden: ' + str(total_customers))
+        logger_supermarket.info('Anzahl vollständige Einkäufe: ' + str(total_customers - skip_count))
+        logger_supermarket.info('Mittlere Einkaufsdauer: ' + str(avg_time))
+
+        print('Simulationsende: ' + str(datetime.now() - simulation_start))
+        print('Anzahl Kunden: ' + str(total_customers))
+        print('Anzahl vollständige Einkäufe: ' + str(total_customers - skip_count))
+        print('Mittlere Einkaufsdauer: ' + str(avg_time))
+        if tmp_baecker.skip_count == 0:
+            logger_supermarket.info('Drop percentage at Bäcker: 00.0')
+            print('Drop percentage at Bäcker: 00.0')
+        else:
+            logger_supermarket.info('Drop percentage at Bäcker: ' + str(len(tmp_baecker.successful_customer) /
+                                                                        tmp_baecker.skip_count))
+            print('Drop percentage at Bäcker: ' + str(len(tmp_baecker.successful_customer) / tmp_baecker.skip_count))
+        if tmp_wursttheke.skip_count == 0:
+            logger_supermarket.info('Drop percentage at Wursttheke: 00.0')
+            print('Drop percentage at Wursttheke: 00.0')
+        else:
+            logger_supermarket.info('Drop percentage at Wursttheke: ' + str(len(tmp_wursttheke.successful_customer) /
+                                                                            tmp_wursttheke.skip_count))
+            print('Drop percentage at Wursttheke: ' + str(len(tmp_wursttheke.successful_customer) /
+                                                          tmp_wursttheke.skip_count))
+        if tmp_kaesetheke.skip_count == 0:
+            logger_supermarket.info('Drop percentage at Käsetheke: 00.0')
+            print('Drop percentage at Käsetheke: 00.0')
+        else:
+            logger_supermarket.info('Drop percentage at Käsetheke: ' + str(len(tmp_kaesetheke.successful_customer) /
+                                                                           tmp_kaesetheke.skip_count))
+            print('Drop percentage at Käsetheke: ' + str(len(tmp_kaesetheke.successful_customer) /
+                                                         tmp_kaesetheke.skip_count))
+        if tmp_kasse.skip_count == 0:
+            logger_supermarket.info('Drop percentage at Kasse: 00.0')
+            print('Drop percentage at Kasse: 00.0')
+        else:
+            logger_supermarket.info('Drop percentage at Kasse: ' + str(len(tmp_kasse.successful_customer) /
+                                                                       tmp_kasse.skip_count))
+            print('Drop percentage at Kasse: ' + str(len(tmp_kasse.successful_customer) / tmp_kasse.skip_count))
 
 
 class Thread:
     @staticmethod
-    def t_check_if_finished_at_station(tmp_supermarket, tmp_baecker, tmp_wursttheke, tmp_kaesetheke, tmp_kasse):
+    def t_check_if_finished_at_station(tmp_supermarket, tmp_baecker, tmp_wursttheke, tmp_kaesetheke, tmp_kasse,
+                                       logger_supermarket_station, logger_supermarket_customer):
         while True:
-            tmp_supermarket.check_if_finished_at_station(tmp_baecker, tmp_wursttheke, tmp_kaesetheke, tmp_kasse)
+            tmp_supermarket.check_if_finished_at_station(tmp_baecker, tmp_wursttheke, tmp_kaesetheke, tmp_kasse,
+                                                         logger_supermarket_station, logger_supermarket_customer)
 
     @staticmethod
-    def t_supermarket_supervisor(tmp_supermarket, tmp_baecker, tmp_wursttheke, tmp_kaesetheke, tmp_kasse):
+    def t_supermarket_supervisor(tmp_supermarket, tmp_baecker, tmp_wursttheke, tmp_kaesetheke, tmp_kasse,
+                                 logger_supermarket_station, logger_supermarket_customer):
         while True:
-            tmp_supermarket.supermarket_supervisor(tmp_baecker, tmp_wursttheke, tmp_kaesetheke, tmp_kasse)
+            tmp_supermarket.supermarket_supervisor(tmp_baecker, tmp_wursttheke, tmp_kaesetheke, tmp_kasse,
+                                                   logger_supermarket_station, logger_supermarket_customer)
 
     @staticmethod
-    def t_station_serving(tmp_station, tmp_supermarket):
+    def t_station_serving(tmp_station, tmp_supermarket, logger_supermarket_station):
         while True:
-            tmp_station.serving(tmp_supermarket)
+            tmp_station.serving(tmp_supermarket, logger_supermarket_station)
 
 
 class Simulation:
     def __init__(self, speedup):
+        self.simulation_start = datetime.now()
         self.speedup = speedup
         self.baecker = Baecker(speedup)
         self.kaesetheke = Kaesetheke(speedup)
@@ -378,75 +438,93 @@ class Simulation:
         self.kasse = Kasse(speedup)
         self.supermarket = Supermarket(speedup)
         self.formatter = logging.Formatter('%(asctime)s - %(message)s')
-        self.logger_supermarket_station = self.setup_logger('supermarket_station', 'supermarkt_station.txt')
-        self.logger_supermarket_customer = self.setup_logger('supermarket_customer', 'supermarkt_customer.txt')
+        self.formatter2 = logging.Formatter('%(message)s')
+        self.logger_supermarket_station = self.setup_logger('supermarket_station', 'supermarket_station.txt')
+        self.logger_supermarket_customer = self.setup_logger('supermarket_customer', 'supermarket_customer.txt')
+        self.logger_supermarket = self.setup_logger('supermarket', 'supermarket.txt')
 
     def simulate_with_threads(self):
         thread = Thread
 
         t_check_if_finished_at_station = threading.Thread(target=thread.t_check_if_finished_at_station,
                                                           args=(self.supermarket, self.baecker, self.wursttheke,
-                                                                self.kaesetheke, self.kasse))
+                                                                self.kaesetheke, self.kasse,
+                                                                self.logger_supermarket_station,
+                                                                self.logger_supermarket_customer))
         t_check_if_finished_at_station.daemon = True
         t_check_if_finished_at_station.start()
 
         t_supermarket_supervisor = threading.Thread(target=thread.t_supermarket_supervisor,
                                                     args=(self.supermarket, self.baecker, self.wursttheke,
-                                                          self.kaesetheke, self.kasse))
+                                                          self.kaesetheke, self.kasse, self.logger_supermarket_station,
+                                                          self.logger_supermarket_customer))
         t_supermarket_supervisor.daemon = True
         t_supermarket_supervisor.start()
 
         t_serving_kaesetheke = threading.Thread(target=thread.t_station_serving,
-                                                args=(self.kaesetheke, self.supermarket))
+                                                args=(self.kaesetheke, self.supermarket,
+                                                      self.logger_supermarket_station))
         t_serving_kaesetheke.daemon = True
         t_serving_kaesetheke.start()
 
-        t_serving_baecker = threading.Thread(target=thread.t_station_serving, args=(self.baecker, self.supermarket))
+        t_serving_baecker = threading.Thread(target=thread.t_station_serving, args=(self.baecker, self.supermarket,
+                                                                                    self.logger_supermarket_station))
         t_serving_baecker.daemon = True
         t_serving_baecker.start()
 
-        t_serving_kasse = threading.Thread(target=thread.t_station_serving, args=(self.kasse, self.supermarket))
+        t_serving_kasse = threading.Thread(target=thread.t_station_serving, args=(self.kasse, self.supermarket,
+                                                                                  self.logger_supermarket_station))
         t_serving_kasse.daemon = True
         t_serving_kasse.start()
 
-        t_serving_wursttheke = threading.Thread(target=thread.t_station_serving,
-                                                args=(self.wursttheke, self.supermarket))
+        t_serving_wursttheke = threading.Thread(target=thread.t_station_serving, args=(self.wursttheke,
+                                                                                       self.supermarket,
+                                                                                       self.logger_supermarket_station))
         t_serving_wursttheke.daemon = True
         t_serving_wursttheke.start()
 
         while True:
             print(list(self.supermarket.heap))
-            if len(self.supermarket.heap) == 0:
-                for customer in self.supermarket.customer_list:
-                    if customer.end_time == datetime(2000, 1, 1):
-                        break
-                self.supermarket.print_stats(self.baecker, self.wursttheke, self.kaesetheke, self.kasse, self.speedup)
+            finished = self.check_if_simulation_has_finished()
+            if finished:
                 break
             time.sleep(1 / self.speedup)
+
+    def check_if_simulation_has_finished(self):
+        if len(self.supermarket.heap) == 0:
+            for customer in self.supermarket.customer_list:
+                if customer.end_time == datetime(2000, 1, 1):
+                    return False
+            self.supermarket.print_stats(self.baecker, self.wursttheke, self.kaesetheke, self.kasse, self.speedup,
+                                         self.simulation_start, self.logger_supermarket)
+            return True
 
     def simulate_with_list(self):
         while True:
             self.supermarket.check_if_finished_at_station(self.baecker, self.wursttheke, self.kaesetheke, self.kasse,
-                                                          self.logger_supermarket_station)
+                                                          self.logger_supermarket_station,
+                                                          self.logger_supermarket_customer)
             self.supermarket.supermarket_supervisor(self.baecker, self.wursttheke, self.kaesetheke, self.kasse,
-                                                    self.logger_supermarket_station)
+                                                    self.logger_supermarket_station, self.logger_supermarket_customer)
             self.kaesetheke.serving(self.supermarket, self.logger_supermarket_station)
             self.baecker.serving(self.supermarket, self.logger_supermarket_station)
             self.kasse.serving(self.supermarket, self.logger_supermarket_station)
             self.wursttheke.serving(self.supermarket, self.logger_supermarket_station)
             print(list(self.supermarket.heap))
-            if len(self.supermarket.heap) == 0:
-                for customer in self.supermarket.customer_list:
-                    if customer.end_time == datetime(2000, 1, 1):
-                        break
-                self.supermarket.print_stats(self.baecker, self.wursttheke, self.kaesetheke, self.kasse, self.speedup)
+            finished = self.check_if_simulation_has_finished()
+            if finished:
                 break
             time.sleep(1 / self.speedup)
 
     def setup_logger(self, name, log_file, level=logging.INFO):
-
+        open('supermarket_customer.txt', 'w').close()
+        open('supermarket_station.txt', 'w').close()
+        open('supermarket.txt', 'w').close()
         handler = logging.FileHandler(log_file)
-        handler.setFormatter(self.formatter)
+        if name == 'supermarket':
+            handler.setFormatter(self.formatter2)
+        else:
+            handler.setFormatter(self.formatter)
         logger = logging.getLogger(name)
         logger.setLevel(level)
         logger.addHandler(handler)
@@ -454,5 +532,5 @@ class Simulation:
         return logger
 
 
-Simulation(speedup=30).simulate_with_list()
-#Simulation(speedup=30).simulate_with_threads()
+# Simulation(speedup=30).simulate_with_list()
+Simulation(speedup=30).simulate_with_threads()
