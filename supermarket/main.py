@@ -75,28 +75,28 @@ class Customer:
 
 
 class Shop:
-    def serving_customer(shop_object):
-        if Shop.serving_items(shop_object):
+    def serving_customer(self):
+        if Shop.serving_items(self):
             return 0, ""
 
         now = datetime.now()
-        diff = now - shop_object.last_served
+        diff = now - self.last_served
 
-        if diff.seconds >= shop_object.serve_time:
-            if not shop_object.queue.empty():
-                customer = shop_object.queue.get()
+        if diff.seconds >= self.serve_time:
+            if not self.queue.empty():
+                customer = self.queue.get()
                 tmpstr = str(customer.type_id) + str(customer.id)
-                if shop_object.name == "Bäcker":
-                    tmptime = customer.baecker.item_count * shop_object.serve_time
-                if shop_object.name == "Kasse":
-                    tmptime = customer.kasse.item_count * shop_object.serve_time
-                if shop_object.name == "Käsetheke":
-                    tmptime = customer.kaesetheke.item_count * shop_object.serve_time
-                if shop_object.name == "Wursttheke":
-                    tmptime = customer.wursttheke.item_count * shop_object.serve_time
-                heappush(supermarket.heap, (datetime.now() + timedelta(0, tmptime), tmpstr, shop_object.name))
-                shop_object.serving_until = datetime.now() + timedelta(0, tmptime)
-                logger.info(shop_object.name + " serving customer " + tmpstr)
+                if self.name == "Bäcker":
+                    tmptime = customer.baecker.item_count * self.serve_time
+                if self.name == "Kasse":
+                    tmptime = customer.kasse.item_count * self.serve_time
+                if self.name == "Käsetheke":
+                    tmptime = customer.kaesetheke.item_count * self.serve_time
+                if self.name == "Wursttheke":
+                    tmptime = customer.wursttheke.item_count * self.serve_time
+                heappush(supermarket.heap, (datetime.now() + timedelta(0, tmptime), tmpstr, self.name))
+                self.serving_until = datetime.now() + timedelta(0, tmptime)
+                logger.info(self.name + " serving customer " + tmpstr)
                 return tmptime, tmpstr
             return 0, ""
         else:
@@ -129,8 +129,8 @@ class Baecker:
         self.skip_count = 0
         self.successful_customer = []
 
-    def serving(self, shop_object):
-        tmp = Shop.serving_customer(shop_object)
+    def serving(self):
+        tmp = Shop.serving_customer(self)
         if tmp[0] != 0:
             self.last_served = datetime.now()
         return
@@ -158,8 +158,8 @@ class Wursttheke:
         self.skip_count = 0
         self.successful_customer = []
 
-    def serving(self, shop_object):
-        tmp = Shop.serving_customer(shop_object)
+    def serving(self):
+        tmp = Shop.serving_customer(self)
         if tmp[0] != 0:
             self.last_served = datetime.now()
         return
@@ -187,8 +187,8 @@ class Kaesetheke:
         self.skip_count = 0
         self.successful_customer = []
 
-    def serving(self, shop_object):
-        tmp = Shop.serving_customer(shop_object)
+    def serving(self):
+        tmp = Shop.serving_customer(self)
         if tmp[0] != 0:
             self.last_served = datetime.now()
         return
@@ -216,8 +216,8 @@ class Kasse:
         self.skip_count = 0
         self.successful_customer = []
 
-    def serving(self, shop_object):
-        tmp = Shop.serving_customer(shop_object)
+    def serving(self):
+        tmp = Shop.serving_customer(self)
         if tmp[0] != 0:
             self.last_served = datetime.now()
         return
@@ -345,6 +345,45 @@ class Supermarket:
                         self.active_customer_list.remove(item)
                 break;
 
+    def print_stats(self):
+        print("Successful Customers at Bäcker: " + str(len(baecker.successful_customer)))
+        print("Customers that skipped Bäcker: " + str(baecker.skip_count))
+        print("Successful Customers at Wursttheke: " + str(len(wursttheke.successful_customer)))
+        print("Customers that skipped Wursttheke: " + str(wursttheke.skip_count))
+        print("Successful Customers at Käsetheke: " + str(len(kaesetheke.successful_customer)))
+        print("Customers that skipped Käsetheke: " + str(kaesetheke.skip_count))
+        print("Successful Customers at Kasse: " + str(len(kasse.successful_customer)))
+        print("Customers that skipped Kasse: " + str(kasse.skip_count))
+        for customer in supermarket.customer_list:
+            print("Customer " + customer.type_id + str(customer.id) + " time spent in Supermarket: " + str(
+                (customer.end_time - customer.start_time) * speedup))
+
+
+class Thread:
+    def t_check_if_finished_at_station(self):
+        while True:
+            supermarket.check_if_finished_at_station()
+
+    def t_supermarket_supervisor(self):
+        while True:
+            supermarket.supermarket_supervisor(supermarket.event_queue)
+
+    def t_kaesetheke_serving(self):
+        while True:
+            kaesetheke.serving()
+
+    def t_wursttheke_serving(self):
+        while True:
+            wursttheke.serving()
+
+    def t_baecker_serving(self):
+        while True:
+            baecker.serving()
+
+    def t_kasse_serving(self):
+        while True:
+            kasse.serving()
+
 
 logger = logging.getLogger('msglog')
 logger.setLevel(logging.INFO)
@@ -362,11 +401,11 @@ supermarket = Supermarket()
 while True:
     supermarket.check_if_finished_at_station()
     supermarket.supermarket_supervisor(supermarket.event_queue)
-    kaesetheke.serving(kaesetheke)
-    baecker.serving(baecker)
-    kasse.serving(kasse)
-    wursttheke.serving(wursttheke)
-    print(list(supermarket.heap))
+    kaesetheke.serving()
+    baecker.serving()
+    kasse.serving()
+    wursttheke.serving()
+    print(list(supermarket.heap))  # todo remove
     if len(supermarket.heap) == 0:
         print("Successful Customers at Bäcker: " + str(len(baecker.successful_customer)))
         print("Customers that skipped Bäcker: " + str(baecker.skip_count))
@@ -383,9 +422,40 @@ while True:
     time.sleep(1 / speedup)
 
 
-# t = threading.Thread(target=Baecker.start_serving)
-# t.daemon = True
-# t.start()
+#
+# thread = Thread
+#
+# t_check_if_finished_at_station = threading.Thread(target=thread.t_check_if_finished_at_station)
+# t_check_if_finished_at_station.daemon = True
+# t_check_if_finished_at_station.start()
+#
+# t_supermarket_supervisor = threading.Thread(target=thread.t_supermarket_supervisor)
+# t_supermarket_supervisor.daemon = True
+# t_supermarket_supervisor.start()
+#
+# t_serving_kaesetheke = threading.Thread(target=thread.t_kaesetheke_serving)
+# t_serving_kaesetheke.daemon = True
+# t_serving_kaesetheke.start()
+#
+# t_serving_baecker = threading.Thread(target=thread.t_baecker_serving)
+# t_serving_baecker.daemon = True
+# t_serving_baecker.start()
+#
+# t_serving_kasse = threading.Thread(target=thread.t_kasse_serving)
+# t_serving_kasse.daemon = True
+# t_serving_kasse.start()
+#
+# t_serving_wursttheke = threading.Thread(target=thread.t_wursttheke_serving)
+# t_serving_wursttheke.daemon = True
+# t_serving_wursttheke.start()
+#
+# while True:
+#     print(list(supermarket.heap))
+#     if len(supermarket.heap) == 0:
+#         supermarket.print_stats()
+#         break
+#     time.sleep(1 / speedup)
+
 # Shop.serving_customer(self.serve_time, self.queue)
 
 # Shop.poll_server(baecker) #nur bei threads
