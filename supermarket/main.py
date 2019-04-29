@@ -22,6 +22,7 @@ class Customer:
         self.first_time_here = True
         self.current_state = ''
         self.skipped_station = False
+        self.station_sequence_lock = threading.Lock()
 
         if type_id == 1:    # Type A
             self.baecker = StationCustomerView('Bäcker', 10, 10)
@@ -45,7 +46,7 @@ class Customer:
         elif self.first_time_here:
             self.start_time = datetime.now()
             self.first_time_here = False
-
+        self.station_sequence_lock.acquire()
         if len(self.station_sequence) > 0:
             if self.station_sequence[0] == 'Bäcker':
                 self.current_state = 'Bäcker'
@@ -69,6 +70,7 @@ class Customer:
                 logger_supermarket_customer.info(self.type_id + str(self.id) + ' Queueing at Kasse')
         else:
             self.end_time = datetime.now()
+        self.station_sequence_lock.release()
 
     def makeunbusy(self):
         self.busy = False
@@ -123,8 +125,12 @@ class Baecker:
         self.serve_time = 10 / speedup
         self.skip_count = 0
         self.successful_customer = []
+        self.busy = False
 
     def serving(self, tmp_supermarket, logger_supermarket_station):
+        for item in tmp_supermarket.heap:
+            if self.name == item[2]:
+                return
         tmp = serving_customer(self, tmp_supermarket, logger_supermarket_station)
         if tmp[0] != 0:
             self.last_served = datetime.now()
@@ -153,8 +159,12 @@ class Wursttheke:
         self.serve_time = 30 / speedup
         self.skip_count = 0
         self.successful_customer = []
+        self.busy = False
 
     def serving(self, tmp_supermarket, logger_supermarket_station):
+        for item in tmp_supermarket.heap:
+            if self.name == item[2]:
+                return
         tmp = serving_customer(self, tmp_supermarket, logger_supermarket_station)
         if tmp[0] != 0:
             self.last_served = datetime.now()
@@ -183,8 +193,12 @@ class Kaesetheke:
         self.serve_time = 60 / speedup
         self.skip_count = 0
         self.successful_customer = []
+        self.busy = False
 
     def serving(self, tmp_supermarket, logger_supermarket_station):
+        for item in tmp_supermarket.heap:
+            if self.name == item[2]:
+                return
         tmp = serving_customer(self, tmp_supermarket, logger_supermarket_station)
         if tmp[0] != 0:
             self.last_served = datetime.now()
@@ -213,8 +227,12 @@ class Kasse:
         self.serve_time = 5 / speedup
         self.skip_count = 0
         self.successful_customer = []
+        self.busy = False
 
     def serving(self, tmp_supermarket, logger_supermarket_station):
+        for item in tmp_supermarket.heap:
+            if self.name == item[2]:
+                return
         tmp = serving_customer(self, tmp_supermarket, logger_supermarket_station)
         if tmp[0] != 0:
             self.last_served = datetime.now()
@@ -251,6 +269,16 @@ class Supermarket:
         self.A8 = Customer(1)
         self.A9 = Customer(1)
         self.A10 = Customer(1)
+        self.A11 = Customer(1)
+        self.A12 = Customer(1)
+        self.A13 = Customer(1)
+        self.A14 = Customer(1)
+        self.A15 = Customer(1)
+        self.A16 = Customer(1)
+        self.A17 = Customer(1)
+        self.A18 = Customer(1)
+        self.A19 = Customer(1)
+        self.A20 = Customer(1)
         self.A1.id = 1
         self.A2.id = 2
         self.A3.id = 3
@@ -261,6 +289,16 @@ class Supermarket:
         self.A8.id = 8
         self.A9.id = 9
         self.A10.id = 10
+        self.A11.id = 11
+        self.A12.id = 12
+        self.A13.id = 13
+        self.A14.id = 14
+        self.A15.id = 15
+        self.A16.id = 16
+        self.A17.id = 17
+        self.A18.id = 18
+        self.A19.id = 19
+        self.A20.id = 20
         self.B1 = Customer(2)
         self.B2 = Customer(2)
         self.B3 = Customer(2)
@@ -271,6 +309,16 @@ class Supermarket:
         self.B8 = Customer(2)
         self.B9 = Customer(2)
         self.B10 = Customer(2)
+        self.B11 = Customer(2)
+        self.B12 = Customer(2)
+        self.B13 = Customer(2)
+        self.B14 = Customer(2)
+        self.B15 = Customer(2)
+        self.B16 = Customer(2)
+        self.B17 = Customer(2)
+        self.B18 = Customer(2)
+        self.B19 = Customer(2)
+        self.B20 = Customer(2)
         self.B1.id = 1
         self.B2.id = 2
         self.B3.id = 3
@@ -281,8 +329,21 @@ class Supermarket:
         self.B8.id = 8
         self.B9.id = 9
         self.B10.id = 10
+        self.B11.id = 11
+        self.B12.id = 12
+        self.B13.id = 13
+        self.B14.id = 14
+        self.B15.id = 15
+        self.B16.id = 16
+        self.B17.id = 17
+        self.B18.id = 18
+        self.B19.id = 19
+        self.B20.id = 20
         self.customer_list = [self.A1, self.A2, self.A3, self.A4, self.A5, self.A6, self.A7, self.A8, self.A9, self.A10,
-                              self.B1, self.B2, self.B3, self.B4, self.B5, self.B6, self.B7, self.B8, self.B9, self.B10,
+                              self.A11, self.A12, self.A13, self.A14, self.A15, self.A16, self.A17, self.A18, self.A19,
+                              self.A20, self.B1, self.B2, self.B3, self.B4, self.B5, self.B6, self.B7, self.B8, self.B9,
+                              self.B10, self.B11, self.B12, self.B13, self.B14, self.B15, self.B16, self.B17, self.B18,
+                              self.B19, self.B20,
                               ]
         self.event_queue = self.initiate_event_queue(speedup)
 
@@ -321,6 +382,16 @@ class Supermarket:
         event_list.append((datetime.now() + timedelta(seconds=1400) / speedup, self.A8))
         event_list.append((datetime.now() + timedelta(seconds=1600) / speedup, self.A9))
         event_list.append((datetime.now() + timedelta(seconds=1800) / speedup, self.A10))
+        event_list.append((datetime.now() + timedelta(seconds=2000) / speedup, self.A11))
+        event_list.append((datetime.now() + timedelta(seconds=2200) / speedup, self.A12))
+        event_list.append((datetime.now() + timedelta(seconds=2400) / speedup, self.A13))
+        event_list.append((datetime.now() + timedelta(seconds=2600) / speedup, self.A14))
+        event_list.append((datetime.now() + timedelta(seconds=2800) / speedup, self.A15))
+        event_list.append((datetime.now() + timedelta(seconds=3000) / speedup, self.A16))
+        event_list.append((datetime.now() + timedelta(seconds=3200) / speedup, self.A17))
+        event_list.append((datetime.now() + timedelta(seconds=3400) / speedup, self.A18))
+        event_list.append((datetime.now() + timedelta(seconds=3600) / speedup, self.A19))
+        event_list.append((datetime.now() + timedelta(seconds=3800) / speedup, self.A20))
         event_list.append((datetime.now() + timedelta(seconds=1) / speedup, self.B1))
         event_list.append((datetime.now() + timedelta(seconds=61) / speedup, self.B2))
         event_list.append((datetime.now() + timedelta(seconds=121) / speedup, self.B3))
@@ -331,6 +402,16 @@ class Supermarket:
         event_list.append((datetime.now() + timedelta(seconds=421) / speedup, self.B8))
         event_list.append((datetime.now() + timedelta(seconds=481) / speedup, self.B9))
         event_list.append((datetime.now() + timedelta(seconds=541) / speedup, self.B10))
+        event_list.append((datetime.now() + timedelta(seconds=601) / speedup, self.B11))
+        event_list.append((datetime.now() + timedelta(seconds=661) / speedup, self.B12))
+        event_list.append((datetime.now() + timedelta(seconds=721) / speedup, self.B13))
+        event_list.append((datetime.now() + timedelta(seconds=781) / speedup, self.B14))
+        event_list.append((datetime.now() + timedelta(seconds=841) / speedup, self.B15))
+        event_list.append((datetime.now() + timedelta(seconds=901) / speedup, self.B16))
+        event_list.append((datetime.now() + timedelta(seconds=961) / speedup, self.B17))
+        event_list.append((datetime.now() + timedelta(seconds=1021) / speedup, self.B18))
+        event_list.append((datetime.now() + timedelta(seconds=1081) / speedup, self.B19))
+        event_list.append((datetime.now() + timedelta(seconds=1141) / speedup, self.B20))
         for item in event_list:
             heappush(event_queue, item)
         event_queue.sort()
@@ -370,7 +451,6 @@ class Supermarket:
         logger_supermarket.info('Anzahl Kunden: ' + str(total_customers))
         logger_supermarket.info('Anzahl vollständige Einkäufe: ' + str(total_customers - skip_count))
         logger_supermarket.info('Mittlere Einkaufsdauer: ' + str(avg_time))
-
         print('Simulationsende: ' + str(datetime.now() - simulation_start))
         print('Anzahl Kunden: ' + str(total_customers))
         print('Anzahl vollständige Einkäufe: ' + str(total_customers - skip_count))
@@ -379,32 +459,48 @@ class Supermarket:
             logger_supermarket.info('Drop percentage at Bäcker: 00.0')
             print('Drop percentage at Bäcker: 00.0')
         else:
-            logger_supermarket.info('Drop percentage at Bäcker: ' + str(len(tmp_baecker.successful_customer) /
-                                                                        tmp_baecker.skip_count))
-            print('Drop percentage at Bäcker: ' + str(len(tmp_baecker.successful_customer) / tmp_baecker.skip_count))
+            logger_supermarket.info('Drop percentage at Bäcker: ' + str(tmp_baecker.skip_count /
+                                                                        (len(tmp_baecker.successful_customer) +
+                                                                         tmp_baecker.skip_count) * 100))
+            print('Drop percentage at Bäcker: ' + str(tmp_baecker.skip_count / (len(tmp_baecker.successful_customer) +
+                                                                                tmp_baecker.skip_count) * 100))
         if tmp_wursttheke.skip_count == 0:
             logger_supermarket.info('Drop percentage at Wursttheke: 00.0')
             print('Drop percentage at Wursttheke: 00.0')
         else:
-            logger_supermarket.info('Drop percentage at Wursttheke: ' + str(len(tmp_wursttheke.successful_customer) /
-                                                                            tmp_wursttheke.skip_count))
-            print('Drop percentage at Wursttheke: ' + str(len(tmp_wursttheke.successful_customer) /
-                                                          tmp_wursttheke.skip_count))
+            logger_supermarket.info('Drop percentage at Wursttheke: ' + str(tmp_wursttheke.skip_count /
+                                                                            (len(tmp_wursttheke.successful_customer) +
+                                                                             tmp_wursttheke.skip_count) * 100))
+            print('Drop percentage at Wursttheke: ' + str(tmp_wursttheke.skip_count /
+                                                          (len(tmp_wursttheke.successful_customer) +
+                                                           tmp_wursttheke.skip_count) * 100))
         if tmp_kaesetheke.skip_count == 0:
             logger_supermarket.info('Drop percentage at Käsetheke: 00.0')
             print('Drop percentage at Käsetheke: 00.0')
         else:
-            logger_supermarket.info('Drop percentage at Käsetheke: ' + str(len(tmp_kaesetheke.successful_customer) /
-                                                                           tmp_kaesetheke.skip_count))
-            print('Drop percentage at Käsetheke: ' + str(len(tmp_kaesetheke.successful_customer) /
-                                                         tmp_kaesetheke.skip_count))
+            logger_supermarket.info('Drop percentage at Käsetheke: ' + str(tmp_kaesetheke.skip_count /
+                                                                           (len(tmp_kaesetheke.successful_customer) +
+                                                                            tmp_kaesetheke.skip_count) * 100))
+            print('Drop percentage at Käsetheke: ' + str(tmp_kaesetheke.skip_count /
+                                                         (len(tmp_kaesetheke.successful_customer) +
+                                                          tmp_kaesetheke.skip_count) * 100))
         if tmp_kasse.skip_count == 0:
             logger_supermarket.info('Drop percentage at Kasse: 00.0')
             print('Drop percentage at Kasse: 00.0')
         else:
-            logger_supermarket.info('Drop percentage at Kasse: ' + str(len(tmp_kasse.successful_customer) /
-                                                                       tmp_kasse.skip_count))
-            print('Drop percentage at Kasse: ' + str(len(tmp_kasse.successful_customer) / tmp_kasse.skip_count))
+            logger_supermarket.info('Drop percentage at Kasse: ' + str(tmp_kasse.skip_count /
+                                                                       (len(tmp_kasse.successful_customer) +
+                                                                        tmp_kasse.skip_count) * 100))
+            print('Drop percentage at Kasse: ' + str(tmp_kasse.skip_count / (len(tmp_kasse.successful_customer) +
+                                                                             tmp_kasse.skip_count) * 100))
+        # print('Bäcker: ' + str(len(tmp_baecker.successful_customer)) + ' skipped: ' + str(
+        #     tmp_baecker.skip_count))
+        # print('Wursttheke: ' + str(len(tmp_wursttheke.successful_customer)) + ' skipped: ' + str(
+        #     tmp_wursttheke.skip_count))
+        # print('Käsetheke: ' + str(len(tmp_kaesetheke.successful_customer)) + ' skipped: ' + str(
+        #     tmp_kaesetheke.skip_count))
+        # print('Kasse: ' + str(len(tmp_kasse.successful_customer)) + ' skipped: ' + str(
+        #     tmp_kasse.skip_count))
 
 
 class Thread:
@@ -484,7 +580,7 @@ class Simulation:
         t_serving_wursttheke.start()
 
         while True:
-            print(list(self.supermarket.heap))
+            # print(list(self.supermarket.heap))
             finished = self.check_if_simulation_has_finished()
             if finished:
                 break
@@ -493,7 +589,8 @@ class Simulation:
     def check_if_simulation_has_finished(self):
         if len(self.supermarket.heap) == 0:
             for customer in self.supermarket.customer_list:
-                if customer.end_time == datetime(2000, 1, 1):
+                # print(customer.type_id + str(customer.id) + ' ' + ' ' + str(customer.station_sequence))
+                if len(customer.station_sequence) != 0:
                     return False
             self.supermarket.print_stats(self.baecker, self.wursttheke, self.kaesetheke, self.kasse, self.speedup,
                                          self.simulation_start, self.logger_supermarket)
@@ -510,7 +607,7 @@ class Simulation:
             self.baecker.serving(self.supermarket, self.logger_supermarket_station)
             self.kasse.serving(self.supermarket, self.logger_supermarket_station)
             self.wursttheke.serving(self.supermarket, self.logger_supermarket_station)
-            print(list(self.supermarket.heap))
+            # print(list(self.supermarket.heap))
             finished = self.check_if_simulation_has_finished()
             if finished:
                 break
@@ -533,4 +630,4 @@ class Simulation:
 
 
 # Simulation(speedup=30).simulate_with_list()
-Simulation(speedup=30).simulate_with_threads()
+Simulation(speedup=100).simulate_with_threads()
